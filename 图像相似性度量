@@ -1,0 +1,121 @@
+MSE、PSNR 和 SSIM
+**MSE、PSNR 和 SSIM** 的简洁总结：
+
+## 📌 一、MSE（Mean Squared Error，均方误差）
+
+- **定义**：计算两幅图像对应像素差值的平方的平均值。
+- **特点**：
+  - 值越小，图像越相似。
+  - 计算简单，但未考虑人眼视觉特性。
+- **缺点**：只关注像素差异，忽略图像结构和视觉感知。
+
+### 🔢 公式：
+
+\[
+\text{MSE} = \frac{1}{MN}\sum_{i=1}^{M}\sum_{j=1}^{N}[I(i,j)-K(i,j)]^2
+\]
+
+- \( M, N \)：图像尺寸（高度和宽度）
+- \( I(i,j) \)：原始图像像素值
+- \( K(i,j) \)：待评估图像像素值
+
+
+
+## 📌 二、PSNR（Peak Signal-to-Noise Ratio，峰值信噪比）
+
+- **定义**：基于 MSE 的图像质量评价指标，单位为 dB。
+- **特点**：
+  - 值越大，图像质量越好。
+  - 广泛用于图像压缩、去噪、超分辨率等领域。
+- **缺点**：与 MSE 类似，未考虑人眼视觉感知特性。
+
+### 🔢 公式：
+
+\[
+\text{PSNR} = 10 \cdot \log_{10}\left(\frac{\text{MAX}_I^2}{\text{MSE}}\right)
+\]
+
+- \(\text{MAX}_I\)：图像像素最大可能值（如8位图像为255）
+- MSE：均方误差
+
+
+
+## 📌  三、SSIM（Structural Similarity Index，结构相似性指数）
+
+- **定义**：衡量图像亮度、对比度和结构信息的相似性。
+- **特点**：
+  - 值越接近 1，图像越相似。
+  - 更符合人眼视觉感知，能捕捉图像结构信息。
+- **缺点**：计算复杂度较高，对图像变换（如旋转、缩放）敏感。
+
+
+### 🔢 公式：
+
+\[
+\text{SSIM}(x, y) = \frac{(2\mu_x\mu_y + C_1)(2\sigma_{xy} + C_2)}{(\mu_x^2 + \mu_y^2 + C_1)(\sigma_x^2 + \sigma_y^2 + C_2)}
+\]
+
+- \(\mu_x, \mu_y\)：图像块的均值
+- \(\sigma_x, \sigma_y\)：图像块的标准差
+- \(\sigma_{xy}\)：图像块的协方差
+- \(C_1, C_2\)：常数，用于避免分母为零
+
+
+## 📌 四、三者的对比总结：
+
+| 指标 | 是否考虑人眼感知 | 是否考虑结构信息 | 计算复杂度 | 常用程度 |
+|------|-----------------|-----------------|------------|----------|
+| MSE  | ❌ 否 | ❌ 否 | 低 | ✅ 常用 |
+| PSNR | ❌ 否 | ❌ 否 | 低 | ✅ 常用 |
+| SSIM | ✅ 是 | ✅ 是 | 较高 | ✅ 越来越常用 |
+
+## 📌 五、如何选择：
+
+- **快速评估**：使用 MSE 或 PSNR。
+- **更符合人眼感知**：使用 SSIM。
+- **实际应用中**：通常同时报告 PSNR 和 SSIM，以全面评估图像质量。
+
+
+
+
+## 📌 六、完整示例代码（一次性计算 MSE、PSNR、SSIM）：
+
+```python
+import cv2
+import numpy as np
+import math
+from skimage.metrics import structural_similarity as ssim
+
+def calculate_mse_psnr_ssim(img1, img2, max_pixel=255):
+    img1 = img1.astype(np.float64)
+    img2 = img2.astype(np.float64)
+
+    # 计算 MSE
+    mse = np.mean((img1 - img2) ** 2)
+
+    # 计算 PSNR
+    if mse == 0:
+        psnr = float('inf')
+    else:
+        psnr = 10 * math.log10(max_pixel ** 2 / mse)
+
+    # 计算 SSIM
+    ssim_value = ssim(img1, img2, data_range=max_pixel)
+
+    return mse, psnr, ssim_value
+
+# 示例用法
+img1 = cv2.imread('original.png', cv2.IMREAD_GRAYSCALE)
+img2 = cv2.imread('compressed.png', cv2.IMREAD_GRAYSCALE)
+
+mse, psnr, ssim = calculate_mse_psnr_ssim(img1, img2)
+print(f"MSE: {mse}")
+print(f"PSNR: {psnr} dB")
+print(f"SSIM: {ssim}")
+```
+
+## 📌 7、注意事项：
+
+- 以上代码默认使用灰度图像，如果使用彩色图像，需分别计算每个通道或使用其他方法。
+- 计算 SSIM 时，推荐使用成熟的库（如 `skimage`），因为自己实现较为复杂。
+
