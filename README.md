@@ -8,4 +8,6 @@ Image preprocessing operation library
     
 3、calculate_image_same.py ------------- 图像相似性评价
 
+4、Binary_anomaly_detection.py ------------- 全局二值化检测
+
 
